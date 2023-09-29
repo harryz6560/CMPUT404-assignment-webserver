@@ -35,6 +35,11 @@ class MyWebServer(socketserver.BaseRequestHandler):
         #isolating and making the path of the GET request recieved from the client
         request=self.data.split('\n')[0]
         path=os.path.abspath("www")+request.split()[1]    
+
+        # testing
+        # (host, port) = self.server.server_address
+        # host_port = f'http://{host}:{port}'
+        # print(host_port)
       
         #checking if the request is anything other than a GET request
         if not request.startswith('GET'):
@@ -62,16 +67,20 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 
                 # it is 301 error correct the path 
                 else:
-                    header=b'HTTP/1.0 301 Moved Permanently\r\n'
-                    host='http://127.0.0.1:8080'
-                    location='location : {}'.format(host+request+'/')
-                    self.request.send(header)
-                    self.request.send(b'Content-Type: text/html \n')
-                    self.request.send(bytearray(location,'utf-8'))
-                    self.request.send(b'\r\n')
+                    self.correct_path(request)
             else:  # 404 error
                 header=b'HTTP/1.0 404 Not Found\r\n'
                 self.request.send(header)
+    
+    def correct_path(self, request):
+        (host, port) = self.server.server_address
+        header=b'HTTP/1.0 301 Moved Permanently\r\n'
+        host_port = f'http://{host}:{port}'
+        location='location : {}'.format(host_port+request+'/')
+        self.request.send(header)
+        self.request.send(b'Content-Type: text/html \n')
+        self.request.send(bytearray(location,'utf-8'))
+        self.request.send(b'\r\n')
             
     #this function renders html and css files to the client
     def route(self,request_type,path):
